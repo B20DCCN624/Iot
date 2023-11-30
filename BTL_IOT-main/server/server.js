@@ -6,6 +6,7 @@ const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
     origin: "*",
+    methods: ["GET", "POST"]
   }
 });
 var mqtt = require('mqtt');
@@ -56,9 +57,6 @@ con.connect(function (err) {
 // lắng nghe xem có client nào kết nối với server không 
 io.on('connection', (socket) => {
   console.log(`${io.engine.clientsCount} users active`); // log ra số lượng client đang kết nối đến server
-  socket.on('send-alert', (data) => {
-    client.publish('topic_3', data);
-  });
 });
 
 // lắng nghe những message từ topic 'sensorData'
@@ -82,7 +80,7 @@ client.on('message', function (topic, message) {
           if (err) throw err;
           console.log(`1 record inserted`);
         });
-        io.emit('send-data', { humidity, temperature, soil_moisture, created });
+        io.emit('send-data', data);
       }
     } catch (error) {
       console.error("Error parsing JSON:", error);
@@ -92,6 +90,25 @@ client.on('message', function (topic, message) {
 
 server.listen(3005, () => {
   console.log('listening on *:3005');
+});
+
+// API endpoint để lấy dữ liệu từ database
+app.get('/api/data', (req, res) => {
+  const sql = 'SELECT * FROM Sensors ORDER BY createdAT DESC'; // Thay đổi query theo cấu trúc bảng của bạn
+  con.query(sql, (err, result) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.header("Access-Control-Allow-Origin", "*");
+    res.json(result);
+  });
+});
+
+const port = 3006; // Sử dụng cổng khác với server Socket.IO
+app.listen(port, () => {
+  console.log(`API server is running on port ${port}`);
 });
 
 module.exports = {
