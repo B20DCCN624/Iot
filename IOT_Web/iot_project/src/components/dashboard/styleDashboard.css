@@ -1,0 +1,60 @@
+.dashboard {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.container-name {
+    background: linear-gradient(to right, rgb(59, 159, 246), rgb(86, 120, 246));
+    border-radius: 8px;
+    height: 70px;
+    width: 99%;
+    margin: 0 auto;
+    margin-top: 1px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+.fa-gauge {
+    margin-right: 2px;
+}
+
+.menu-dashboard {
+    margin: 0 auto;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.option-dashboard {
+    margin: 0 auto;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+    margin-bottom: 9px;
+    border-radius: 5px;
+    padding: 10px;
+    width: 83%;
+    transition: transform 0.3s ease-in-out;
+    transition: box-shadow 0.3s ease-in-out;
+    cursor: pointer;
+    color: black;
+
+}
+
+.option-dashboard:hover {
+    box-shadow: 0 4px 7px 0 rgba(0, 0, 0, 0.5);
+    transform: scale(1.03);
+
+}
+
+.icon-db {
+    margin-right: 3px;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}

@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
+// Socket Setup
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
@@ -11,14 +12,14 @@ const io = new Server(server, {
 });
 var mqtt = require('mqtt');
 var mysql = require('mysql');
-
+// MySQL setup
 var con = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '17112212',
   database: 'iot'
 });
-
+// MQTT setup
 var options = {
   host: "192.168.12.105",
   port: 1883,
@@ -54,9 +55,30 @@ con.connect(function (err) {
   });
 });
 
+let statusRelay = "off"
 // lắng nghe xem có client nào kết nối với server không 
 io.on('connection', (socket) => {
   console.log(`${io.engine.clientsCount} users active`); // log ra số lượng client đang kết nối đến server
+  
+  socket.on('send-relay', (data) => {
+    console.log('Received relay data from client:', data);
+
+    if (data === '.relay') {
+      statusRelay = statusRelay === 'off' ? 'on' : 'off';
+    }  
+    io.emit('relay-change', { isOn: statusRelay === 'on' }); // Truyền trạng thái từ client này đến tất cả clients khác
+    //Gửi thông điệp đến MQTT
+    client.publish('status', statusRelay);
+    console.log('statusRelay:', statusRelay);
+
+    let statuss;
+    if (statusRelay === 'on') {
+      statuss = 'ON';
+    } else {
+      statuss = 'OFF';
+    }
+    console.log(statuss)
+  });
 });
 
 // lắng nghe những message từ topic 'sensorData'
@@ -94,7 +116,20 @@ server.listen(3005, () => {
 
 // API endpoint để lấy dữ liệu từ database
 app.get('/api/data', (req, res) => {
-  const sql = 'SELECT * FROM Sensors ORDER BY createdAT DESC'; // Thay đổi query theo cấu trúc bảng của bạn
+  const sql = 'SELECT * FROM Sensors'; 
+  con.query(sql, (err, result) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.header("Access-Control-Allow-Origin", "*");
+    res.json(result);
+  });
+});
+
+app.get('/api/dataHistory', (req, res) => {
+  const sql = 'SELECT * FROM Sensors ORDER BY createdAT DESC'; 
   con.query(sql, (err, result) => {
     if (err) {
       console.error('Error executing query:', err);
@@ -111,6 +146,7 @@ app.listen(port, () => {
   console.log(`API server is running on port ${port}`);
 });
 
+// Xuất (export) một đối tượng từ module này để có thể sử dụng ở nơi khác 
 module.exports = {
   getData: function () {
     return fullData;
